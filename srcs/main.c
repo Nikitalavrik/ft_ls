@@ -12,8 +12,15 @@
 
 #include "ft_ls.h"
 
+
+
 int		main(int argc, char **argv)
 {
+	// struct stat sb;
+
+	// lstat(argv[argc - 1], &sb);
+	// ft_printf("Mode %li\n", sb.st_mode);
+	// parse_permision((unsigned long) sb.st_mode);
 	t_ls *begin;
 	struct winsize w;
 

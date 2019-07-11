@@ -34,6 +34,30 @@ int		calc_col(t_ls *begin)
 	return (max_len + 1);
 }
 
+void	out_permision(unsigned long perm)
+{
+	ft_printf("%c%c%c%c%c%c%c%c%c%c", 
+	S_ISDIR(perm) ? "d" : "-",
+	(perm & S_IRUSR) ? "r" : "-",
+	(perm & S_IWUSR) ? "w" : "-",
+	(perm & S_IXUSR) ? "x" : "-",
+	(perm & S_IRGRP) ? "r" : "-",
+	(perm & S_IWGRP) ? "w" : "-",
+	(perm & S_IXGRP) ? "x" : "-",
+	(perm & S_IROTH) ? "r" : "-",
+	(perm & S_IWOTH) ? "w" : "-",
+	(perm & S_IXOTH) ? "x" : "-");
+    // ft_printf((perm & S_IRUSR) ? "r" : "-");
+    // ft_printf((perm & S_IWUSR) ? "w" : "-");
+   	// ft_printf((perm & S_IXUSR) ? "x" : "-");
+    // ft_printf((perm & S_IRGRP) ? "r" : "-");
+    // ft_printf((perm & S_IWGRP) ? "w" : "-");
+    // ft_printf((perm & S_IXGRP) ? "x" : "-");
+    // ft_printf((perm & S_IROTH) ? "r" : "-");
+    // ft_printf((perm & S_IWOTH) ? "w" : "-");
+    // ft_printf((perm & S_IXOTH) ? "x" : "-");
+}
+
 void	output_paths(t_ls *begin)
 {
 	t_path	*tmp_path;
@@ -44,7 +68,7 @@ void	output_paths(t_ls *begin)
 	while (tmp_path)
 	{
 		sum_column += begin->col;
-		if (sum_column > begin->columns)
+		if (sum_column > begin->w_columns)
 		{
 			sum_column = begin->col;
 			ft_printf("\n");
@@ -55,24 +79,39 @@ void	output_paths(t_ls *begin)
 	ft_printf("\n");
 }
 
+void	output_lpaths(t_ls *begin)
+{
+	t_path *tmp_path;
+
+	tmp_path = begin->paths;
+	while (tmp_path)
+	{
+		out_permision(tmp_path->stats.st_mode);
+		ft_printf("%15s\n", tmp_path->path);
+		tmp_path = tmp_path->next;
+	}
+}
+
 void	put_path(t_ls *begin)
 {
 	struct	dirent	*rd;
 	t_path			*tmp_path;
 	int				max_len;
-	int				len;
+	int				flag;
 
 	max_len = 0;
 	begin->dir = opendir(begin->d_path ? begin->d_path : ".");
 	tmp_path = begin->paths;
+	flag = check_flag(begin, 'l');
 	if (begin->dir)
 	{
 		while ((rd = readdir(begin->dir)))
 		{
 			if (rd->d_name[0] != '.')
 			{
-				len = ft_strlen(rd->d_name);
-				max_len = len > max_len ? len : max_len;
+				if (flag)
+					lstat(rd->d_name, &(tmp_path->stats));
+				max_len = rd->d_namlen > max_len ? rd->d_namlen : max_len;
 				if (tmp_path->path)
 					tmp_path = add_path(tmp_path);
 				tmp_path->path = rd->d_name;
@@ -121,10 +160,11 @@ void	output_ls(t_ls *begin)
 		if (begin->next)
 			begin->next->col = begin->col;
 		sort_paths(begin->paths);
-		output_paths(begin);
+		if (check_flag(begin, 'l'))
+			output_lpaths(begin);
+		else
+			output_paths(begin);
 		begin = begin->next;
-		// if (begin)
-		// 	ft_printf("\n");
 	}
 	begin = save_begin;
 }
