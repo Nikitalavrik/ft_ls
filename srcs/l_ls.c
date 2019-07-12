@@ -38,6 +38,8 @@ t_ls	*add_node(t_ls *begin, char *path)
 
 	i = 0;
 	new_node = create_ls();
+	if (!begin)
+		return (new_node);
 	save_begin = begin;
 	new_node->d_path = path;
 	new_node->w_rows = begin->w_rows;
@@ -47,10 +49,9 @@ t_ls	*add_node(t_ls *begin, char *path)
 		new_node->flags[i] = begin->flags[i];
 		i++;
 	}
-	while (begin->next)
-		begin = begin->next;
-	begin->next = new_node;
-	begin = save_begin;
+	while (save_begin->next)
+		save_begin = save_begin->next;
+	save_begin->next = new_node;
 	return (new_node);
 }
 

@@ -37,6 +37,35 @@ t_ls	*parsing(int argc, char **argv, t_ls *begin)
 			begin = add_node(begin, argv[i]);
 		i++;
 	}
-	// print_node(save_begin);
+	// sys_print_node(save_begin);
 	return (save_begin);
+}
+
+char	*pathcat(char *dir, char *file)
+{
+	char *ret;
+	int len;
+	int i;
+	int j;
+
+	i = 0;
+	j = ft_strlen(file);
+	len = ft_strlen(dir);
+	ret = ft_memalloc(sizeof(char) * (len + j + 1));
+	while (i < len)
+	{
+		ret[i] = dir[i];
+		i++;
+	}
+	if (ret[i - 1] != '/')
+		ret[i++] = '/';
+	len = j;
+	j = 0;
+	while (j < len)
+	{
+		ret[i] = file[j];
+		j++;
+		i++;
+	}
+	return (ret);
 }

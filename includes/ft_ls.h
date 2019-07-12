@@ -19,6 +19,10 @@
 # include <stdarg.h>
 # include <sys/ioctl.h>
 # include <sys/stat.h>
+# include <sys/types.h>
+# include <pwd.h>
+# include <grp.h>
+# include <time.h>
 
 int		ft_printf(const char *s, ...);
 
@@ -54,7 +58,14 @@ int					check_flag(t_ls *begin, char flag);
 t_path				*create_path(void);
 t_path				*add_path(t_path *begin);
 int					ft_lstlen(t_path *begin);
+char				*pathcat(char *dir, char *file);
 
 t_ls				*parsing(int argc, char **argv, t_ls *begin);
+
+void				out_permision(unsigned long perm);
+void				out_num_link(unsigned long num);
+void				out_owner_group(struct stat stats);
+void				out_num_bytes(unsigned int num);
+void				out_time_modify(struct stat stats);
 
 #endif

@@ -30,6 +30,7 @@ void	sys_print_node(t_ls *begin)
 		ft_printf("\n");
 		save_begin = save_begin->next;
 	}
+	ft_printf("-------------------\n");
 }
 
 void	sys_output_path(t_path *begin)

@@ -18,6 +18,7 @@ SRC =	main.c			\
 		parsing.c		\
 		paths.c			\
 		sys_output.c	\
+		out_file_info.c	\
 
 CC = gcc
 FLAGS = -Wall -Wextra -Werror
