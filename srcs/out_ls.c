@@ -12,29 +12,19 @@
 
 #include "ft_ls.h"
 
-int		calc_col(t_ls *begin)
+int		count_space(int max_len, t_ls *begin)
 {
-	DIR *dir;
-	struct dirent *rd;
-	int	max_len;
-	int	len;
+	int i;
+	int	total_size;
 
-	max_len = 0;
-	dir = opendir(begin->paths->path ? begin->paths->path : ".");
-	if (dir)
-	{
-		while ((rd = readdir(dir)) != NULL)
-		{
-			len = ft_strlen(rd->d_name);
-			if (len > max_len)
-				max_len = len;
-		}
-		closedir(dir);
-	}
-	return (max_len + 1);
+	i = 8;
+	while (i < max_len)
+		i += 8;
+	total_size = i * begin->count_files;
+	total_size = total_size / begin->w_columns + 1;
+	ft_printf("raws = %i\n", total_size);
+	return (i);
 }
-
-
 
 void	output_paths(t_ls *begin)
 {
@@ -43,6 +33,7 @@ void	output_paths(t_ls *begin)
 
 	sum_column = 0;
 	tmp_path = begin->paths;
+	begin->col = count_space(begin->col, begin);
 	while (tmp_path)
 	{
 		sum_column += begin->col;
@@ -57,21 +48,73 @@ void	output_paths(t_ls *begin)
 	ft_printf("\n");
 }
 
+char	*get_link(t_ls *begin, char *path)
+{
+	char	*str;
+	char	static buf[512];
+	int		count;
+
+	count = 0;
+	ft_bzero(buf, sizeof(buf));
+	str = pathcat(begin->d_path, path);
+	count = readlink(str, buf, sizeof(buf));
+	return (buf);
+}
+
 void	output_lpaths(t_ls *begin)
 {
 	t_path *tmp_path;
+	int		flag_l;
 
 	tmp_path = begin->paths;
+	ft_printf("total %i\n", begin->block_size);
 	while (tmp_path)
 	{
-		out_permision(tmp_path->stats.st_mode);
-		out_num_link(tmp_path->stats.st_nlink);
-		out_owner_group(tmp_path->stats);
-		out_num_bytes(tmp_path->stats.st_size);
+		flag_l = out_permision(tmp_path->stats.st_mode);
+		ft_printf(" %*llu", begin->max_numlink + 1, tmp_path->stats.st_nlink);
+		ft_printf(" %-*s %-*s", begin->max_uid + 1, tmp_path->pw_name,\
+							begin->max_group + 1, tmp_path->gr_name);
+		out_num_bytes(tmp_path->stats.st_size, tmp_path->stats, begin);
 		out_time_modify(tmp_path->stats);
-		ft_printf(" %s\n", tmp_path->path);
+		ft_printf(" %s", tmp_path->path);
+		if (flag_l)
+			ft_printf(" -> %s", get_link(begin, tmp_path->path));
+		ft_printf("\n");
 		tmp_path = tmp_path->next;
 	}
+	free_paths(begin->paths);
+}
+
+int		ft_nbrlen(int num)
+{
+	int	count;
+
+	count = 1;
+	while (num > 10)
+	{
+		num /= 10;
+		count++;
+	}
+	return (count);
+}
+
+void	calc_max(t_ls *begin, t_path *path)
+{	
+	int				len;
+	struct	passwd	*pw;
+	struct	group	*gr;
+
+	pw = getpwuid(path->stats.st_uid);
+	gr = getgrgid(path->stats.st_gid);
+
+	len = ft_nbrlen(path->stats.st_nlink);
+	begin->max_numlink =  len > begin->max_numlink ? len : begin->max_numlink;
+	path->gr_name = ft_strdup(gr->gr_name);
+	len = ft_strlen(gr->gr_name);
+	begin->max_group = len > begin->max_group ? len : begin->max_group;
+	path->pw_name = ft_strdup(pw->pw_name);
+	len = ft_strlen(pw->pw_name);
+	begin->max_uid = len > begin->max_uid ? len : begin->max_uid;
 }
 
 void	put_path(t_ls *begin)
@@ -80,68 +123,42 @@ void	put_path(t_ls *begin)
 	t_path			*tmp_path;
 	int				max_len;
 	int				flag;
+	int				flag_l;
+	char			*conc_path;
+
 
 	max_len = 0;
-	begin->d_path = begin->d_path ? begin->d_path : ".";
+	begin->d_path = begin->d_path ? begin->d_path : ft_strdup(".");
 	begin->dir = opendir(begin->d_path);
 	tmp_path = begin->paths;
 	flag = check_flag(begin, 'R');
+	flag_l = check_flag(begin, 'l');
 	if (begin->dir)
 	{
 		while ((rd = readdir(begin->dir)))
 		{
-			if (rd->d_name[0] != '.')
+			if (rd->d_name[0] != '.' || check_flag(begin, 'a'))
 			{
 				max_len = rd->d_namlen > max_len ? rd->d_namlen : max_len;
 				if (tmp_path->path)
 					tmp_path = add_path(tmp_path);
-				tmp_path->path = rd->d_name;
-				stat(pathcat(begin->d_path, rd->d_name), &(tmp_path->stats));
-				if (flag && S_ISDIR(tmp_path->stats.st_mode))
-				{
-					add_node(begin, pathcat(begin->d_path, rd->d_name));
-					// ft_printf("dir = %s\n", pathcat(begin->d_path, rd->d_name));
-							// sys_print_node(begin);
-				}
+				tmp_path->path = ft_strdup(rd->d_name);
+				conc_path = pathcat(begin->d_path, rd->d_name);
+				// ft_printf("path = %s d_name = %s\n", conc_path, rd->d_name);
+				lstat(conc_path, &(tmp_path->stats));
+				calc_max(begin, tmp_path);
+				begin->block_size += tmp_path->stats.st_blocks;
+				if (S_ISBLK(tmp_path->stats.st_mode) || S_ISCHR(tmp_path->stats.st_mode))
+					begin->device = 1;
+				if (flag && (S_ISDIR(tmp_path->stats.st_mode) && !S_ISLNK(tmp_path->stats.st_mode)))
+					add_node(begin, conc_path);
+				else
+					ft_memdel((void **)&conc_path);
+				begin->count_files++;
 			}
 		}
-		// sys_print_node(begin);
+		closedir(begin->dir);
 		begin->col = max_len + 1;
-	}
-}
-
-void	swap_paths(t_path *swap_path)
-{
-	char		*tmp_path;
-	struct stat tmp_stat;
-
-	tmp_path = swap_path->path;
-	swap_path->path = swap_path->next->path;
-	swap_path->next->path = tmp_path;
-	tmp_stat = swap_path->stats;
-	swap_path->stats = swap_path->next->stats;
-	swap_path->next->stats = tmp_stat;
-}
-
-void	sort_paths(t_path *begin)
-{
-	t_path	*tmp_begin;
-	int		i;
-	int		len;
-
-	i = 0;
-	len = ft_lstlen(begin);
-	tmp_begin = begin;
-	while (i < len)
-	{
-		while (tmp_begin->next)
-		{
-			if (ft_strcmp(tmp_begin->path, tmp_begin->next->path) > 0)
-				swap_paths(tmp_begin);
-			tmp_begin = tmp_begin->next;
-		}
-		tmp_begin = begin;
-		i++;
 	}
 }
 
@@ -150,10 +167,12 @@ void	output_ls(t_ls *begin)
 	t_ls *save_begin;
 	int		flag_next;
 	int		flag_R;
+	char	*init_dir;
 
 	flag_R = check_flag(begin, 'R');
 	flag_next = begin->next || flag_R ? 1 : 0;
 	save_begin = begin;
+	init_dir = begin->d_path;
 	while (begin)
 	{
 		put_path(begin);
@@ -161,7 +180,12 @@ void	output_ls(t_ls *begin)
 			begin->next->col = begin->col;
 		if (flag_next)
 			ft_printf("%s:\n", begin->d_path);
-		sort_paths(begin->paths);
+		if (check_flag(begin, 'r'))
+			sort_paths(begin->paths, &reverse_sort);
+		else if (check_flag(begin, 't'))
+			sort_paths_time(begin->paths);
+		else
+			sort_paths(begin->paths, &simple_sort);
 		if (check_flag(begin, 'l'))
 			output_lpaths(begin);
 		else
@@ -171,4 +195,6 @@ void	output_ls(t_ls *begin)
 		begin = begin->next;
 	}
 	begin = save_begin;
+	// free_dirs(begin);
+	// system("leaks ft_ls");
 }

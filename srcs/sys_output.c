@@ -44,5 +44,5 @@ void	sys_output_path(t_path *begin)
 		ft_printf("%s ", tmp_path->path);
 		tmp_path = tmp_path->next;
 	}
-	ft_printf("\n");
+	ft_printf("\n------------------\n");
 }

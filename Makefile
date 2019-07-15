@@ -19,6 +19,8 @@ SRC =	main.c			\
 		paths.c			\
 		sys_output.c	\
 		out_file_info.c	\
+		sorting.c		\
+		free_all.c
 
 CC = gcc
 FLAGS = -Wall -Wextra -Werror

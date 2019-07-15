@@ -29,6 +29,9 @@ int		ft_printf(const char *s, ...);
 typedef	struct		s_path
 {
 	char			*path;
+	char			*pw_name;
+	char			*gr_name;
+	size_t 			xattr;
 	struct	stat	stats;
 	struct	s_path	*next;
 }					t_path;
@@ -43,6 +46,13 @@ typedef	struct		s_ls
 	int				w_columns;
 	int				col;
 	char			flags[5];
+	int				block_size;
+	int				max_numlink;
+	int				max_uid;
+	int				max_group;
+	int				device;
+	int				max_filename;
+	int				count_files;
 	struct	s_ls	*next;
 }					t_ls;
 
@@ -54,6 +64,7 @@ void				output_ls(t_ls *begin);
 t_ls				*create_ls(void);
 t_ls				*add_node(t_ls *begin, char *path);
 int					check_flag(t_ls *begin, char flag);
+void				copy_node_param(t_ls *begin, t_ls *new_node);
 
 t_path				*create_path(void);
 t_path				*add_path(t_path *begin);
@@ -62,10 +73,16 @@ char				*pathcat(char *dir, char *file);
 
 t_ls				*parsing(int argc, char **argv, t_ls *begin);
 
-void				out_permision(unsigned long perm);
-void				out_num_link(unsigned long num);
-void				out_owner_group(struct stat stats);
-void				out_num_bytes(unsigned int num);
+int					out_permision(unsigned long perm);
+void				out_num_bytes(unsigned int num, struct stat stats, t_ls *begin);
 void				out_time_modify(struct stat stats);
+
+int					simple_sort(char *s1, char *s2);
+int					reverse_sort(char *s1, char *s2);
+void				sort_paths(t_path *begin, int f(char *s1, char *s2));
+void				sort_paths_time(t_path *begin);
+
+void				free_dirs(t_ls *begin);
+void				free_paths(t_path *paths);
 
 #endif

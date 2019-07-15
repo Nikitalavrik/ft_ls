@@ -22,6 +22,13 @@ t_ls	*create_ls(void)
 	l_ls->paths = create_path();
 	l_ls->next = NULL;
 	l_ls->d_path = NULL;
+	l_ls->block_size = 0;
+	l_ls->max_filename = 0;
+	l_ls->max_group = 0;
+	l_ls->max_numlink = 0;
+	l_ls->max_uid = 0;
+	l_ls->device = 0;
+	l_ls->count_files = 0;
 	while (i < 5)
 	{
 		l_ls->flags[i] = 0;
@@ -30,18 +37,12 @@ t_ls	*create_ls(void)
 	return (l_ls);
 }
 
-t_ls	*add_node(t_ls *begin, char *path)
+void	copy_node_param(t_ls *begin, t_ls *new_node)
 {
-	t_ls *new_node;
-	t_ls *save_begin;
 	int	i;
 
 	i = 0;
-	new_node = create_ls();
-	if (!begin)
-		return (new_node);
-	save_begin = begin;
-	new_node->d_path = path;
+	new_node->col = begin->col;
 	new_node->w_rows = begin->w_rows;
 	new_node->w_columns = begin->w_columns;
 	while (i < 5)
@@ -49,6 +50,20 @@ t_ls	*add_node(t_ls *begin, char *path)
 		new_node->flags[i] = begin->flags[i];
 		i++;
 	}
+}
+
+t_ls	*add_node(t_ls *begin, char *path)
+{
+	t_ls *new_node;
+	t_ls *save_begin;
+	
+
+	new_node = create_ls();
+	if (!begin)
+		return (new_node);
+	copy_node_param(begin, new_node);
+	save_begin = begin;
+	new_node->d_path = path;
 	while (save_begin->next)
 		save_begin = save_begin->next;
 	save_begin->next = new_node;

@@ -2,3 +2,4 @@ obj
 .vscode
 ft_ls
 *.o
+test

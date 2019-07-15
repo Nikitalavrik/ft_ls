@@ -12,10 +12,16 @@
 
 #include "ft_ls.h"
 
-void	out_permision(unsigned long perm)
+int		out_permision(unsigned long perm)
 {
+	char type;
+
+	type = S_ISDIR(perm) ? 'd' : '-';
+	type = S_ISLNK(perm) ? 'l' : type;
+	type = S_ISCHR(perm) ? 'c' : type;
+	type = S_ISBLK(perm) ? 'b' : type;
 	ft_printf("%c%c%c%c%c%c%c%c%c%c", 
-	S_ISDIR(perm) ? 'd' : '-',
+	type,
 	(perm & S_IRUSR) ? 'r' : '-',
 	(perm & S_IWUSR) ? 'w' : '-',
 	(perm & S_IXUSR) ? 'x' : '-',
@@ -25,27 +31,18 @@ void	out_permision(unsigned long perm)
 	(perm & S_IROTH) ? 'r' : '-',
 	(perm & S_IWOTH) ? 'w' : '-',
 	(perm & S_IXOTH) ? 'x' : '-');
+	return (type == 'l');
 }
 
-void	out_num_link(unsigned long num)
+void	out_num_bytes(unsigned int num, struct stat stats, t_ls *begin)
 {
-	ft_printf("%5llu", num);
-}
 
-void	out_owner_group(struct stat stats)
-{
-	struct	passwd	*pw;
-	struct	group	*gr;
-
-	pw = getpwuid(stats.st_uid);
-	gr = getgrgid(stats.st_gid);
-
-	ft_printf(" %s  %s", pw->pw_name, gr->gr_name);
-}
-
-void	out_num_bytes(unsigned int num)
-{
-	ft_printf(" %6u", num);
+	if (S_ISBLK(stats.st_mode) || S_ISCHR(stats.st_mode))
+		ft_printf(" %5u, %3u", major(stats.st_rdev), minor(stats.st_rdev));
+	else if (begin->device)
+		ft_printf(" %10u", num);
+	else
+		ft_printf(" %5u", num);
 }
 
 void	out_time_modify(struct stat stats)

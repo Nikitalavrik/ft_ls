@@ -16,7 +16,19 @@
 
 int		main(int argc, char **argv)
 {
+	// char *str1;
+	// char *str2;
+	// char *res;
 
+
+	// str1 = "libft";
+	// str2 = "ft_bzero.c";
+	// res = pathcat(str1, str2);
+	// if (argc && argv)
+	// 	ft_printf("|%s|\n", res);
+	// free(res);
+
+		// system("leaks ft_ls");
 	t_ls *begin;
 	struct winsize w;
 
@@ -29,5 +41,6 @@ int		main(int argc, char **argv)
 		begin = parsing(argc, argv, begin);
 		output_ls(begin);
 	}
+	// system("leaks ft_ls");
 	return (0);
 }

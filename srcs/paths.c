@@ -19,6 +19,9 @@ t_path	*create_path(void)
 	path = ft_memalloc(sizeof(t_path));
 	path->path = NULL;
 	path->next = NULL;
+	path->gr_name = NULL;
+	path->pw_name = NULL;
+	path->xattr = 0;
 	return (path);
 }
 

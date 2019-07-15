@@ -32,9 +32,9 @@ t_ls	*parsing(int argc, char **argv, t_ls *begin)
 			}
 		}
 		else if (!begin->d_path)
-			begin->d_path = argv[i];
+			begin->d_path = ft_strdup(argv[i]);
 		else
-			begin = add_node(begin, argv[i]);
+			begin = add_node(begin, ft_strdup(argv[i]));
 		i++;
 	}
 	// sys_print_node(save_begin);
@@ -51,7 +51,7 @@ char	*pathcat(char *dir, char *file)
 	i = 0;
 	j = ft_strlen(file);
 	len = ft_strlen(dir);
-	ret = ft_memalloc(sizeof(char) * (len + j + 1));
+	ret = ft_memalloc(sizeof(char) * (len + j + (ft_get_index(dir, '/') ? 1 : 2)));
 	while (i < len)
 	{
 		ret[i] = dir[i];
@@ -67,5 +67,6 @@ char	*pathcat(char *dir, char *file)
 		j++;
 		i++;
 	}
+	ret[i] = '\0';
 	return (ret);
 }
