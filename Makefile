@@ -20,7 +20,8 @@ SRC =	main.c			\
 		sys_output.c	\
 		out_file_info.c	\
 		sorting.c		\
-		free_all.c
+		free_all.c		\
+		staff.c
 
 CC = gcc
 FLAGS = -Wall -Wextra -Werror

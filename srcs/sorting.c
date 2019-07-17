@@ -19,7 +19,7 @@ int		simple_sort(char *s1, char *s2)
 
 int		reverse_sort(char *s1, char *s2)
 {
-	return (ft_strcmp(s1, s2) < 0);
+	return (ft_strcmp(s1, s2));
 }
 
 void	swap_paths(t_path *swap_path)
@@ -39,6 +39,25 @@ void	swap_paths(t_path *swap_path)
 	tmp_path = swap_path->gr_name;
 	swap_path->gr_name = swap_path->next->gr_name;
 	swap_path->next->gr_name = tmp_path;
+}
+
+void	sort_rev(t_path **begin)
+{
+	t_path	*tmp_path;
+	t_path	*tmp_prev;
+	t_path	*tmp_next;
+
+	tmp_path = *begin;
+	tmp_prev = NULL;
+	tmp_next = NULL;
+	while (tmp_path)
+	{
+		tmp_next = tmp_path->next;
+		tmp_path->next = tmp_prev;
+		tmp_prev = tmp_path;
+		tmp_path = tmp_next;
+	}
+	*begin = tmp_prev;
 }
 
 void	sort_paths(t_path *begin, int f(char *s1, char *s2))

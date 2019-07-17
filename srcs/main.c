@@ -16,19 +16,6 @@
 
 int		main(int argc, char **argv)
 {
-	// char *str1;
-	// char *str2;
-	// char *res;
-
-
-	// str1 = "libft";
-	// str2 = "ft_bzero.c";
-	// res = pathcat(str1, str2);
-	// if (argc && argv)
-	// 	ft_printf("|%s|\n", res);
-	// free(res);
-
-		// system("leaks ft_ls");
 	t_ls *begin;
 	struct winsize w;
 
@@ -38,9 +25,15 @@ int		main(int argc, char **argv)
 	begin->w_columns = w.ws_col;
 	if (argc > 0 && argv)
 	{
-		begin = parsing(argc, argv, begin);
-		output_ls(begin);
+		if (parsing(argc, argv, begin))
+			output_ls(begin);
+			// ft_printf("OK\n");
+		else
+		{
+			ft_printf("./ft_ls: illegal option\n");
+			ft_printf("usage : ./ft_ls [-RafrtugG] [file ...]\n");
+		}
+		// system("leaks ft_ls");
 	}
-	// system("leaks ft_ls");
 	return (0);
 }

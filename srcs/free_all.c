@@ -38,11 +38,10 @@ void	free_dirs(t_ls *begin)
 	while (begin)
 	{
 		next_ls = begin->next;
-		// ft_printf("dir = %s\n", begin->d_path);
-		free(begin->d_path);
+		ft_memdel((void **)&begin->d_path);
 		free_paths(begin->paths);
+		ft_memdel((void **)&begin->flag);
 		begin->next = NULL;
-		// ft_memdel((void **)&begin->dir);
 		ft_memdel((void **)&begin);
 		begin = next_ls;
 	}

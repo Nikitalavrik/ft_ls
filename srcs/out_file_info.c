@@ -63,3 +63,35 @@ void	out_time_modify(struct stat stats)
 	time_str[13] = '\0';
 	ft_printf("%s", time_str);
 }
+
+void	color_print(unsigned long num)
+{
+	if (S_ISDIR(num))
+		ft_printf("\033%s", GREEN);
+	else if (S_ISLNK(num))
+		ft_printf("\033%s", RED);
+	else if (S_ISCHR(num))
+		ft_printf("\033%s", MAGENTA);
+	else if (S_ISBLK(num))
+		ft_printf("\033%s", BLUE);
+	else
+		ft_printf("\033%s", YELLOW);
+}
+
+char	*get_link(t_ls *begin, char *path)
+{
+	char	*str;
+	char	static buf[512];
+	int		count;
+
+	count = 0;
+	ft_bzero(buf, sizeof(buf));
+	if (begin->w_rows)
+		str = pathcat(begin->d_path, path);
+	else
+		str = path;
+	count = readlink(str, buf, sizeof(buf));
+	if (begin->w_rows)
+		free(str);
+	return (buf);
+}

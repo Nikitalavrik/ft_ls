@@ -28,6 +28,11 @@ void	sys_print_node(t_ls *begin)
 			i++;
 		}
 		ft_printf("\n");
+		ft_printf("flag_l %d\n", begin->flag->l);
+		ft_printf("flag_r %d\n", begin->flag->r);
+		ft_printf("flag_R %d\n", begin->flag->R);
+		ft_printf("flag_a %d\n", begin->flag->a);
+		ft_printf("flag_t %d\n", begin->flag->t);
 		save_begin = save_begin->next;
 	}
 	ft_printf("-------------------\n");

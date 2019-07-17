@@ -12,20 +12,6 @@
 
 #include "ft_ls.h"
 
-int		count_space(int max_len, t_ls *begin)
-{
-	int i;
-	int	total_size;
-
-	i = 8;
-	while (i < max_len)
-		i += 8;
-	total_size = i * begin->count_files;
-	total_size = total_size / begin->w_columns + 1;
-	ft_printf("raws = %i\n", total_size);
-	return (i);
-}
-
 void	output_paths(t_ls *begin)
 {
 	t_path	*tmp_path;
@@ -33,32 +19,27 @@ void	output_paths(t_ls *begin)
 
 	sum_column = 0;
 	tmp_path = begin->paths;
-	begin->col = count_space(begin->col, begin);
-	while (tmp_path)
+	begin->col = begin->flag->one ? 0 :count_space(begin->col);
+	while (tmp_path && tmp_path->path)
 	{
-		sum_column += begin->col;
-		if (sum_column > begin->w_columns)
+		if (!begin->flag->one)
 		{
-			sum_column = begin->col;
-			ft_printf("\n");
+			sum_column += begin->col;
+			if (sum_column > begin->w_columns)
+			{
+				sum_column = begin->col;
+				ft_printf("\n");
+			}
 		}
-		ft_printf("%-*s", begin->col, tmp_path->path);
+		if (begin->flag->G)
+			color_print(tmp_path->stats.st_mode);
+		ft_printf("%-*s\033%s", begin->col, tmp_path->path, RESET);
+		if (begin->flag->one)
+			ft_printf("\n");
 		tmp_path = tmp_path->next;
 	}
-	ft_printf("\n");
-}
-
-char	*get_link(t_ls *begin, char *path)
-{
-	char	*str;
-	char	static buf[512];
-	int		count;
-
-	count = 0;
-	ft_bzero(buf, sizeof(buf));
-	str = pathcat(begin->d_path, path);
-	count = readlink(str, buf, sizeof(buf));
-	return (buf);
+	if (!begin->flag->one && begin->paths->path)
+		ft_printf("\n");
 }
 
 void	output_lpaths(t_ls *begin)
@@ -67,91 +48,64 @@ void	output_lpaths(t_ls *begin)
 	int		flag_l;
 
 	tmp_path = begin->paths;
-	ft_printf("total %i\n", begin->block_size);
-	while (tmp_path)
+	if (tmp_path && tmp_path->path && begin->w_rows)
+		ft_printf("total %i\n", begin->block_size);
+	while (tmp_path && tmp_path->path)
 	{
+		if (begin->flag->G)
+			color_print(tmp_path->stats.st_mode);
 		flag_l = out_permision(tmp_path->stats.st_mode);
 		ft_printf(" %*llu", begin->max_numlink + 1, tmp_path->stats.st_nlink);
-		ft_printf(" %-*s %-*s", begin->max_uid + 1, tmp_path->pw_name,\
-							begin->max_group + 1, tmp_path->gr_name);
+		if (!begin->flag->g)
+			ft_printf(" %-*s", begin->max_uid + 1, tmp_path->pw_name);
+		ft_printf(" %-*s", begin->max_group + 1, tmp_path->gr_name);
 		out_num_bytes(tmp_path->stats.st_size, tmp_path->stats, begin);
 		out_time_modify(tmp_path->stats);
-		ft_printf(" %s", tmp_path->path);
+		ft_printf(" %s\033%s", tmp_path->path, RESET);
 		if (flag_l)
 			ft_printf(" -> %s", get_link(begin, tmp_path->path));
 		ft_printf("\n");
 		tmp_path = tmp_path->next;
 	}
-	free_paths(begin->paths);
 }
 
-int		ft_nbrlen(int num)
-{
-	int	count;
-
-	count = 1;
-	while (num > 10)
-	{
-		num /= 10;
-		count++;
-	}
-	return (count);
-}
-
-void	calc_max(t_ls *begin, t_path *path)
-{	
-	int				len;
-	struct	passwd	*pw;
-	struct	group	*gr;
-
-	pw = getpwuid(path->stats.st_uid);
-	gr = getgrgid(path->stats.st_gid);
-
-	len = ft_nbrlen(path->stats.st_nlink);
-	begin->max_numlink =  len > begin->max_numlink ? len : begin->max_numlink;
-	path->gr_name = ft_strdup(gr->gr_name);
-	len = ft_strlen(gr->gr_name);
-	begin->max_group = len > begin->max_group ? len : begin->max_group;
-	path->pw_name = ft_strdup(pw->pw_name);
-	len = ft_strlen(pw->pw_name);
-	begin->max_uid = len > begin->max_uid ? len : begin->max_uid;
-}
-
-void	put_path(t_ls *begin)
+int		put_path(t_ls *begin)
 {
 	struct	dirent	*rd;
 	t_path			*tmp_path;
 	int				max_len;
-	int				flag;
-	int				flag_l;
 	char			*conc_path;
+	t_ls			*next_R;
 
 
 	max_len = 0;
 	begin->d_path = begin->d_path ? begin->d_path : ft_strdup(".");
 	begin->dir = opendir(begin->d_path);
 	tmp_path = begin->paths;
-	flag = check_flag(begin, 'R');
-	flag_l = check_flag(begin, 'l');
 	if (begin->dir)
 	{
 		while ((rd = readdir(begin->dir)))
 		{
-			if (rd->d_name[0] != '.' || check_flag(begin, 'a'))
+			if (rd->d_name[0] != '.' || begin->flag->a || begin->flag->f)
 			{
 				max_len = rd->d_namlen > max_len ? rd->d_namlen : max_len;
 				if (tmp_path->path)
 					tmp_path = add_path(tmp_path);
 				tmp_path->path = ft_strdup(rd->d_name);
 				conc_path = pathcat(begin->d_path, rd->d_name);
-				// ft_printf("path = %s d_name = %s\n", conc_path, rd->d_name);
 				lstat(conc_path, &(tmp_path->stats));
 				calc_max(begin, tmp_path);
 				begin->block_size += tmp_path->stats.st_blocks;
 				if (S_ISBLK(tmp_path->stats.st_mode) || S_ISCHR(tmp_path->stats.st_mode))
 					begin->device = 1;
-				if (flag && (S_ISDIR(tmp_path->stats.st_mode) && !S_ISLNK(tmp_path->stats.st_mode)))
-					add_node(begin, conc_path);
+				if (begin->flag->R && S_ISDIR(tmp_path->stats.st_mode) && !S_ISLNK(tmp_path->stats.st_mode)\
+					&& ft_strcmp(rd->d_name, ".") && ft_strcmp(rd->d_name, "..") && begin->flag->first)
+				{
+					next_R = create_ls();
+					copy_node_param(begin, next_R);
+					next_R->d_path = conc_path;
+					output_ls(next_R);
+				}
 				else
 					ft_memdel((void **)&conc_path);
 				begin->count_files++;
@@ -159,42 +113,56 @@ void	put_path(t_ls *begin)
 		}
 		closedir(begin->dir);
 		begin->col = max_len + 1;
+		return (1);
 	}
+	else
+		begin->flag->error = 1;
+	return (begin->flag->R);
 }
 
 void	output_ls(t_ls *begin)
 {
-	t_ls *save_begin;
-	int		flag_next;
-	int		flag_R;
-	char	*init_dir;
+	t_ls	*save_begin;
+	int		f_row;
 
-	flag_R = check_flag(begin, 'R');
-	flag_next = begin->next || flag_R ? 1 : 0;
 	save_begin = begin;
-	init_dir = begin->d_path;
+	f_row = begin->flag->f_row;
+	begin->flag->exist = begin->d_path ? 1 : 0;
 	while (begin)
 	{
-		put_path(begin);
+		if (!check_LNK(begin->d_path, begin))
+			put_path(begin);
+		begin->flag->first = begin->flag->R;
+		if (f_row)
+			ft_printf("\n");
+		if ((begin->d_path || begin->flag->R) && begin->flag->exist)
+			ft_printf("%s:\n", begin->d_path);
+		if (begin->flag->error)
+			perror(begin->d_path);
 		if (begin->next)
 			begin->next->col = begin->col;
-		if (flag_next)
-			ft_printf("%s:\n", begin->d_path);
-		if (check_flag(begin, 'r'))
-			sort_paths(begin->paths, &reverse_sort);
-		else if (check_flag(begin, 't'))
-			sort_paths_time(begin->paths);
-		else
-			sort_paths(begin->paths, &simple_sort);
-		if (check_flag(begin, 'l'))
+		if (!begin->flag->f)
+		{
+			if (begin->flag->t)
+				sort_paths_time(begin->paths);
+			else
+				sort_paths(begin->paths, &simple_sort);
+			if (begin->flag->r)
+				sort_rev(&begin->paths);
+		}
+		if (begin->flag->l)
 			output_lpaths(begin);
 		else
 			output_paths(begin);
-		if (begin->next)
-			ft_printf("\n");
+		f_row = 1;
+		begin->flag->f_row = f_row;
+		if (begin->flag->first)
+		{
+			// begin->flag->first = begin->flag->R;
+			put_path(begin);
+		}
 		begin = begin->next;
 	}
 	begin = save_begin;
-	// free_dirs(begin);
-	// system("leaks ft_ls");
+	free_dirs(begin);
 }
