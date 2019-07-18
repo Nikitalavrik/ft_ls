@@ -35,9 +35,9 @@ SRCS = $(addprefix $(SRC_DIR)/,$(SRC))
 
 OBJS = $(addprefix $(OBJ_DIR)/,$(SRC:.c=.o))
 
-all: $(PRINTF) $(LIB) $(NAME) 
+all: $(NAME) 
 
-$(NAME): $(OBJS)
+$(NAME): $(PRINTF) $(LIB) $(OBJS)
 		@$(CC) $(FLAGS) $(OBJS) $(PRINTF) $(LIB) -o $(NAME)
 	
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.c
@@ -54,10 +54,13 @@ clean:
 	@rm -f $(OBJS)
 	@rm -rf $(OBJ_DIR)
 	@make -C ./libft/ clean
+	@make -C ./ft_printf/ clean
 
 fclean: clean
 	@rm $(NAME)
 	@make -C ./libft/ fclean
+	@make -C ./ft_printf/ fclean
 
 re: fclean all
 	@make -C ./libft/ re
+	@make -C ./ft_printf/ re

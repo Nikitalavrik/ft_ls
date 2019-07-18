@@ -41,7 +41,7 @@ void	out_num_bytes(unsigned int num, struct stat stats, t_ls *begin)
 	else if (begin->device)
 		ft_printf(" %10u", num);
 	else
-		ft_printf(" %5u", num);
+		ft_printf(" %*u", begin->max_bytes, num);
 }
 
 void	out_time_modify(struct stat stats)

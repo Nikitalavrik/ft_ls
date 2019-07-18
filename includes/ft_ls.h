@@ -75,6 +75,7 @@ typedef	struct		s_ls
 	int				max_group;
 	int				device;
 	int				max_filename;
+	int				max_bytes;
 	int				count_files;
 	struct s_ls		*next;
 }					t_ls;

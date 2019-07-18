@@ -46,6 +46,7 @@ t_ls		*create_ls(void)
 	l_ls->max_filename = 0;
 	l_ls->max_group = 0;
 	l_ls->max_numlink = 0;
+	l_ls->max_bytes = 0;
 	l_ls->max_uid = 0;
 	l_ls->device = 0;
 	l_ls->count_files = 0;

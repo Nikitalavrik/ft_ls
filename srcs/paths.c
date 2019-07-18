@@ -86,4 +86,6 @@ void	calc_max(t_ls *begin, t_path *path)
 	path->pw_name = ft_strdup(pw->pw_name);
 	len = ft_strlen(pw->pw_name);
 	begin->max_uid = len > begin->max_uid ? len : begin->max_uid;
+	len = ft_nbrlen((unsigned int)path->stats.st_size);
+	begin->max_bytes = len > begin->max_bytes ? len : begin->max_bytes;
 }

@@ -67,17 +67,17 @@ int		check_valid_flags(char c)
 
 int		put_check_flag(char *argv, t_ls *tmp)
 {
-	int		k;
 	char	flags[20];
+	int		k;
 	int		f;
 
 	k = 0;
 	f = 0;
 	ft_bzero(flags, 20);
-	while (argv[k + 1] && argv[k + 1] != ' ' && k < 20)
+	while (argv[k + 1] && argv[k + 1] != ' ' && f < 20)
 	{
 		tmp->flag->error = argv[k + 1] == 'h';
-		if (check_valid_flags(argv[k + 1]) && argv[k + 1] != 'h')
+		if (check_valid_flags(argv[k + 1]) && argv[k + 1] != 'h' && f < 20)
 		{
 			if (!check_flag(flags, argv[k + 1]))
 				flags[f++] = argv[k + 1];
@@ -101,7 +101,7 @@ int		parsing(int argc, char **argv, t_ls *begin)
 	tmp = begin;
 	while (i < argc)
 	{
-		if (argv[i][0] == '-' && !k)
+		if (argv[i][0] == '-')
 		{
 			if (!(k = put_check_flag(argv[i], tmp)))
 				return (0);
