@@ -19,7 +19,6 @@ void	free_paths(t_path *paths)
 	next_path = paths;
 	while (paths)
 	{
-		// ft_printf("path = %s\n", paths->path);
 		next_path = paths->next;
 		ft_memdel((void **)&paths->gr_name);
 		ft_memdel((void **)&paths->pw_name);

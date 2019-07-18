@@ -19,7 +19,7 @@ void	output_paths(t_ls *begin)
 
 	sum_column = 0;
 	tmp_path = begin->paths;
-	begin->col = begin->flag->one ? 0 :count_space(begin->col);
+	begin->col = begin->flag->one ? 0 : count_space(begin->col);
 	while (tmp_path && tmp_path->path)
 	{
 		if (!begin->flag->one)
@@ -75,8 +75,6 @@ int		put_path(t_ls *begin)
 	t_path			*tmp_path;
 	int				max_len;
 	char			*conc_path;
-	t_ls			*next_R;
-
 
 	max_len = 0;
 	begin->d_path = begin->d_path ? begin->d_path : ft_strdup(".");
@@ -98,16 +96,7 @@ int		put_path(t_ls *begin)
 				begin->block_size += tmp_path->stats.st_blocks;
 				if (S_ISBLK(tmp_path->stats.st_mode) || S_ISCHR(tmp_path->stats.st_mode))
 					begin->device = 1;
-				if (begin->flag->R && S_ISDIR(tmp_path->stats.st_mode) && !S_ISLNK(tmp_path->stats.st_mode)\
-					&& ft_strcmp(rd->d_name, ".") && ft_strcmp(rd->d_name, "..") && begin->flag->first)
-				{
-					next_R = create_ls();
-					copy_node_param(begin, next_R);
-					next_R->d_path = conc_path;
-					output_ls(next_R);
-				}
-				else
-					ft_memdel((void **)&conc_path);
+				ft_memdel((void **)&conc_path);
 				begin->count_files++;
 			}
 		}
@@ -118,6 +107,30 @@ int		put_path(t_ls *begin)
 	else
 		begin->flag->error = 1;
 	return (begin->flag->R);
+}
+
+void	recursion(t_ls *begin)
+{
+	t_path 	*tmp_path;
+	char	*conc_path;
+	t_ls	*next_R;
+
+	tmp_path = begin->paths;
+	while (tmp_path)
+	{
+		conc_path = pathcat(begin->d_path, tmp_path->path);
+		if (begin->flag->R && S_ISDIR(tmp_path->stats.st_mode) && !S_ISLNK(tmp_path->stats.st_mode)\
+			&& ft_strcmp(tmp_path->path, ".") && ft_strcmp(tmp_path->path, "..") && begin->flag->first)
+		{
+			next_R = create_ls();
+			copy_node_param(begin, next_R);
+			next_R->d_path = conc_path;
+			output_ls(next_R);
+		}
+		else
+			ft_memdel((void **)&conc_path);
+		tmp_path = tmp_path->next;
+	}
 }
 
 void	output_ls(t_ls *begin)
@@ -133,9 +146,10 @@ void	output_ls(t_ls *begin)
 		if (!check_LNK(begin->d_path, begin))
 			put_path(begin);
 		begin->flag->first = begin->flag->R;
-		if (f_row)
+		if (f_row && begin->w_rows)
 			ft_printf("\n");
-		if ((begin->d_path || begin->flag->R) && begin->flag->exist)
+		if ((begin->d_path || begin->flag->R) && begin->flag->exist\
+		&& begin->w_rows && !begin->flag->error)
 			ft_printf("%s:\n", begin->d_path);
 		if (begin->flag->error)
 			perror(begin->d_path);
@@ -157,10 +171,7 @@ void	output_ls(t_ls *begin)
 		f_row = 1;
 		begin->flag->f_row = f_row;
 		if (begin->flag->first)
-		{
-			// begin->flag->first = begin->flag->R;
-			put_path(begin);
-		}
+			recursion(begin);
 		begin = begin->next;
 	}
 	begin = save_begin;

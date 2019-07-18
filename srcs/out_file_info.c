@@ -50,17 +50,33 @@ void	out_time_modify(struct stat stats)
 	time_t	mod_time;
 	char	*str;
 	char	time_str[14];
+	time_t	time_now;
 	int i;
 
 	mod_time = stats.st_mtimespec.tv_sec;
 	str = ctime(&mod_time);
+	time(&time_now);
+	ft_bzero(time_str, 14);
 	i = 3;
-	while (i < 16)
+	while (i < 11)
 	{
 		time_str[i - 3] = str[i];
 		i++;
 	}
-	time_str[13] = '\0';
+
+	if (time_now - mod_time > 15778463)
+	{
+		i += 8;
+		mod_time = 8;
+	}
+	else
+		mod_time = 0;
+	while (i < 16 + mod_time)
+	{
+		time_str[i - (3 + mod_time)] = str[i];
+		i++;
+	}
+
 	ft_printf("%s", time_str);
 }
 

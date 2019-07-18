@@ -50,7 +50,7 @@ int		check_valid_flags(char c)
 	char	*valid_flags;
 
 	i = 0;
-	valid_flags = "arltRfguG1";
+	valid_flags = "arltRfgG1";
 	while (valid_flags[i])
 	{
 		if (valid_flags[i] == c)
@@ -80,6 +80,7 @@ int		parsing(int argc, char **argv, t_ls *begin)
 			k = 0;
 			while (argv[i][k + 1] && argv[i][k + 1] != ' ' && k < 20)
 			{
+				begin->flag->error = argv[i][k + 1] == 'h';
 				if (check_valid_flags(argv[i][k + 1]) && argv[i][k + 1] != 'h')
 				{
 					if (!check_flag(flags, argv[i][k + 1]))
@@ -97,6 +98,7 @@ int		parsing(int argc, char **argv, t_ls *begin)
 			begin = add_node(begin, ft_strdup(argv[i]));
 		i++;
 	}
+	begin = save_begin;
 	return (1);
 }
 
@@ -104,12 +106,12 @@ int		check_LNK(char *dirname, t_ls *begin)
 {
 	struct stat stats;
 
-	if (!dirname || !begin->flag->l)
+	if (!dirname)
 		return (0);
 	lstat(dirname, &stats);
-	if (S_ISLNK(stats.st_mode) && dirname[ft_strlen(dirname) - 1] != '/')
+	if ((S_ISLNK(stats.st_mode) && dirname[ft_strlen(dirname) - 1] != '/'\
+	&& begin->flag->l) || S_ISREG(stats.st_mode))
 	{
-		begin->paths = create_path();
 		begin->paths->path = ft_strdup(dirname);
 		begin->paths->stats = stats;
 		begin->w_rows = 0;

@@ -30,8 +30,10 @@ int		main(int argc, char **argv)
 			// ft_printf("OK\n");
 		else
 		{
-			ft_printf("./ft_ls: illegal option\n");
-			ft_printf("usage : ./ft_ls [-RafrtugG] [file ...]\n");
+			if (!begin->flag->error)
+				ft_printf("./ft_ls: illegal option\n");
+			ft_printf("usage : ./ft_ls [-arltRfgG1] [file ...]\n");
+			ft_memdel((void **)&begin);
 		}
 		// system("leaks ft_ls");
 	}
