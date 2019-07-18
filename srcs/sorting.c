@@ -17,11 +17,6 @@ int		simple_sort(char *s1, char *s2)
 	return (ft_strcmp(s1, s2) > 0);
 }
 
-int		reverse_sort(char *s1, char *s2)
-{
-	return (ft_strcmp(s1, s2));
-}
-
 void	swap_paths(t_path *swap_path)
 {
 	char		*tmp_path;

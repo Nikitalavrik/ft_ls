@@ -31,11 +31,10 @@ void	output_paths(t_ls *begin)
 				ft_printf("\n");
 			}
 		}
-		if (begin->flag->G)
+		if (begin->flag->gg)
 			color_print(tmp_path->stats.st_mode);
 		ft_printf("%-*s\033%s", begin->col, tmp_path->path, RESET);
-		if (begin->flag->one)
-			ft_printf("\n");
+		begin->flag->one ? ft_printf("\n") : 0;
 		tmp_path = tmp_path->next;
 	}
 	if (!begin->flag->one && begin->paths->path)
@@ -44,7 +43,7 @@ void	output_paths(t_ls *begin)
 
 void	output_lpaths(t_ls *begin)
 {
-	t_path *tmp_path;
+	t_path	*tmp_path;
 	int		flag_l;
 
 	tmp_path = begin->paths;
@@ -52,7 +51,7 @@ void	output_lpaths(t_ls *begin)
 		ft_printf("total %i\n", begin->block_size);
 	while (tmp_path && tmp_path->path)
 	{
-		if (begin->flag->G)
+		if (begin->flag->gg)
 			color_print(tmp_path->stats.st_mode);
 		flag_l = out_permision(tmp_path->stats.st_mode);
 		ft_printf(" %*llu", begin->max_numlink + 1, tmp_path->stats.st_nlink);
@@ -69,12 +68,30 @@ void	output_lpaths(t_ls *begin)
 	}
 }
 
+void	put_lstat(t_ls *begin, t_path *tmp_path, struct dirent *rd, int *m_len)
+{
+	char	*conc_path;
+
+	*m_len = rd->d_namlen > *m_len ? rd->d_namlen : *m_len;
+	if (tmp_path->path)
+		tmp_path = add_path(tmp_path);
+	tmp_path->path = ft_strdup(rd->d_name);
+	conc_path = pathcat(begin->d_path, rd->d_name);
+	lstat(conc_path, &(tmp_path->stats));
+	calc_max(begin, tmp_path);
+	begin->block_size += tmp_path->stats.st_blocks;
+	if (S_ISBLK(tmp_path->stats.st_mode) ||\
+			S_ISCHR(tmp_path->stats.st_mode))
+		begin->device = 1;
+	ft_memdel((void **)&conc_path);
+	begin->count_files++;
+}
+
 int		put_path(t_ls *begin)
 {
-	struct	dirent	*rd;
+	struct dirent	*rd;
 	t_path			*tmp_path;
 	int				max_len;
-	char			*conc_path;
 
 	max_len = 0;
 	begin->d_path = begin->d_path ? begin->d_path : ft_strdup(".");
@@ -85,20 +102,7 @@ int		put_path(t_ls *begin)
 		while ((rd = readdir(begin->dir)))
 		{
 			if (rd->d_name[0] != '.' || begin->flag->a || begin->flag->f)
-			{
-				max_len = rd->d_namlen > max_len ? rd->d_namlen : max_len;
-				if (tmp_path->path)
-					tmp_path = add_path(tmp_path);
-				tmp_path->path = ft_strdup(rd->d_name);
-				conc_path = pathcat(begin->d_path, rd->d_name);
-				lstat(conc_path, &(tmp_path->stats));
-				calc_max(begin, tmp_path);
-				begin->block_size += tmp_path->stats.st_blocks;
-				if (S_ISBLK(tmp_path->stats.st_mode) || S_ISCHR(tmp_path->stats.st_mode))
-					begin->device = 1;
-				ft_memdel((void **)&conc_path);
-				begin->count_files++;
-			}
+				put_lstat(begin, tmp_path, rd, &max_len);
 		}
 		closedir(begin->dir);
 		begin->col = max_len + 1;
@@ -106,31 +110,7 @@ int		put_path(t_ls *begin)
 	}
 	else
 		begin->flag->error = 1;
-	return (begin->flag->R);
-}
-
-void	recursion(t_ls *begin)
-{
-	t_path 	*tmp_path;
-	char	*conc_path;
-	t_ls	*next_R;
-
-	tmp_path = begin->paths;
-	while (tmp_path)
-	{
-		conc_path = pathcat(begin->d_path, tmp_path->path);
-		if (begin->flag->R && S_ISDIR(tmp_path->stats.st_mode) && !S_ISLNK(tmp_path->stats.st_mode)\
-			&& ft_strcmp(tmp_path->path, ".") && ft_strcmp(tmp_path->path, "..") && begin->flag->first)
-		{
-			next_R = create_ls();
-			copy_node_param(begin, next_R);
-			next_R->d_path = conc_path;
-			output_ls(next_R);
-		}
-		else
-			ft_memdel((void **)&conc_path);
-		tmp_path = tmp_path->next;
-	}
+	return (begin->flag->rr);
 }
 
 void	output_ls(t_ls *begin)
@@ -143,37 +123,8 @@ void	output_ls(t_ls *begin)
 	begin->flag->exist = begin->d_path ? 1 : 0;
 	while (begin)
 	{
-		if (!check_LNK(begin->d_path, begin))
-			put_path(begin);
-		begin->flag->first = begin->flag->R;
-		if (f_row && begin->w_rows)
-			ft_printf("\n");
-		if ((begin->d_path || begin->flag->R) && begin->flag->exist\
-		&& begin->w_rows && !begin->flag->error)
-			ft_printf("%s:\n", begin->d_path);
-		if (begin->flag->error)
-			perror(begin->d_path);
-		if (begin->next)
-			begin->next->col = begin->col;
-		if (!begin->flag->f)
-		{
-			if (begin->flag->t)
-				sort_paths_time(begin->paths);
-			else
-				sort_paths(begin->paths, &simple_sort);
-			if (begin->flag->r)
-				sort_rev(&begin->paths);
-		}
-		if (begin->flag->l)
-			output_lpaths(begin);
-		else
-			output_paths(begin);
-		f_row = 1;
-		begin->flag->f_row = f_row;
-		if (begin->flag->first)
-			recursion(begin);
+		iter_ls(begin, f_row);
 		begin = begin->next;
 	}
-	begin = save_begin;
-	free_dirs(begin);
+	free_dirs(save_begin);
 }

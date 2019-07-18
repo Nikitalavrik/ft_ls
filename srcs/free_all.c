@@ -15,7 +15,7 @@
 void	free_paths(t_path *paths)
 {
 	t_path *next_path;
-	
+
 	next_path = paths;
 	while (paths)
 	{

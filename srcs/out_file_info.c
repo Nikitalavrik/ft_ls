@@ -20,7 +20,7 @@ int		out_permision(unsigned long perm)
 	type = S_ISLNK(perm) ? 'l' : type;
 	type = S_ISCHR(perm) ? 'c' : type;
 	type = S_ISBLK(perm) ? 'b' : type;
-	ft_printf("%c%c%c%c%c%c%c%c%c%c", 
+	ft_printf("%c%c%c%c%c%c%c%c%c%c",
 	type,
 	(perm & S_IRUSR) ? 'r' : '-',
 	(perm & S_IWUSR) ? 'w' : '-',
@@ -36,7 +36,6 @@ int		out_permision(unsigned long perm)
 
 void	out_num_bytes(unsigned int num, struct stat stats, t_ls *begin)
 {
-
 	if (S_ISBLK(stats.st_mode) || S_ISCHR(stats.st_mode))
 		ft_printf(" %5u, %3u", major(stats.st_rdev), minor(stats.st_rdev));
 	else if (begin->device)
@@ -51,7 +50,7 @@ void	out_time_modify(struct stat stats)
 	char	*str;
 	char	time_str[14];
 	time_t	time_now;
-	int i;
+	int		i;
 
 	mod_time = stats.st_mtimespec.tv_sec;
 	str = ctime(&mod_time);
@@ -63,20 +62,13 @@ void	out_time_modify(struct stat stats)
 		time_str[i - 3] = str[i];
 		i++;
 	}
-
-	if (time_now - mod_time > 15778463)
-	{
-		i += 8;
-		mod_time = 8;
-	}
-	else
-		mod_time = 0;
+	i += time_now - mod_time > 15778463 ? 8 : 0;
+	mod_time = time_now - mod_time > 15778463 ? 8 : 0;
 	while (i < 16 + mod_time)
 	{
 		time_str[i - (3 + mod_time)] = str[i];
 		i++;
 	}
-
 	ft_printf("%s", time_str);
 }
 
@@ -96,9 +88,9 @@ void	color_print(unsigned long num)
 
 char	*get_link(t_ls *begin, char *path)
 {
-	char	*str;
-	char	static buf[512];
-	int		count;
+	char		*str;
+	static char	buf[512];
+	int			count;
 
 	count = 0;
 	ft_bzero(buf, sizeof(buf));

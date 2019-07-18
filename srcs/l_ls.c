@@ -12,7 +12,7 @@
 
 #include "ft_ls.h"
 
-t_flags		*create_flags()
+t_flags		*create_flags(void)
 {
 	t_flags		*flags;
 
@@ -20,11 +20,11 @@ t_flags		*create_flags()
 	flags->a = 0;
 	flags->l = 0;
 	flags->r = 0;
-	flags->R = 0;
+	flags->rr = 0;
 	flags->t = 0;
 	flags->f = 0;
 	flags->g = 0;
-	flags->G = 0;
+	flags->gg = 0;
 	flags->one = 0;
 	flags->error = 0;
 	flags->exist = 1;
@@ -33,12 +33,10 @@ t_flags		*create_flags()
 	return (flags);
 }
 
-t_ls	*create_ls(void)
+t_ls		*create_ls(void)
 {
-	int i;
-	t_ls *l_ls;
+	t_ls	*l_ls;
 
-	i = 0;
 	l_ls = ft_memalloc(sizeof(t_ls));
 	l_ls->paths = create_path();
 	l_ls->flag = create_flags();
@@ -51,19 +49,11 @@ t_ls	*create_ls(void)
 	l_ls->max_uid = 0;
 	l_ls->device = 0;
 	l_ls->count_files = 0;
-	while (i < 5)
-	{
-		l_ls->flags[i] = 0;
-		i++;
-	}
 	return (l_ls);
 }
 
-void	copy_node_param(t_ls *begin, t_ls *new_node)
+void		copy_node_param(t_ls *begin, t_ls *new_node)
 {
-	int	i;
-
-	i = 0;
 	new_node->col = begin->col;
 	new_node->w_rows = begin->w_rows;
 	new_node->w_columns = begin->w_columns;
@@ -71,18 +61,17 @@ void	copy_node_param(t_ls *begin, t_ls *new_node)
 	new_node->flag->f = begin->flag->f;
 	new_node->flag->l = begin->flag->l;
 	new_node->flag->r = begin->flag->r;
-	new_node->flag->R = begin->flag->R;
+	new_node->flag->rr = begin->flag->rr;
 	new_node->flag->t = begin->flag->t;
-	new_node->flag->G = begin->flag->G;
+	new_node->flag->gg = begin->flag->gg;
 	new_node->flag->one = begin->flag->one;
 	new_node->flag->f_row = begin->flag->f_row;
 }
 
-t_ls	*add_node(t_ls *begin, char *path)
+t_ls		*add_node(t_ls *begin, char *path)
 {
 	t_ls *new_node;
 	t_ls *save_begin;
-	
 
 	new_node = create_ls();
 	if (!begin)
@@ -96,7 +85,7 @@ t_ls	*add_node(t_ls *begin, char *path)
 	return (new_node);
 }
 
-int		check_flag(char *flags, char flag)
+int			check_flag(char *flags, char flag)
 {
 	int	i;
 

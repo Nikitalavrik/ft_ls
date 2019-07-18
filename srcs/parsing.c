@@ -12,34 +12,39 @@
 
 #include "ft_ls.h"
 
+void	put_flag(t_ls *begin, char c)
+{
+	if (c == 'a')
+		begin->flag->a = 1;
+	if (c == 'l')
+		begin->flag->l = 1;
+	if (c == 't')
+		begin->flag->t = 1;
+	if (c == 'r')
+		begin->flag->r = 1;
+	if (c == 'R')
+		begin->flag->rr = 1;
+	if (c == 'f')
+		begin->flag->f = 1;
+	if (c == 'g')
+	{
+		begin->flag->g = 1;
+		begin->flag->l = 1;
+	}
+	if (c == 'G')
+		begin->flag->gg = 1;
+	if (c == '1')
+		begin->flag->one = 1;
+}
+
 void	parse_flags(t_ls *begin, char *flags)
 {
 	int		i;
 
 	i = 0;
 	while (flags[i])
-	{	
-		if (flags[i] == 'a')
-			begin->flag->a = 1;
-		if (flags[i] == 'l')
-			begin->flag->l = 1;
-		if (flags[i] == 't')
-			begin->flag->t = 1;
-		if (flags[i] == 'r')
-			begin->flag->r = 1;
-		if (flags[i] == 'R')
-			begin->flag->R = 1;
-		if (flags[i] == 'f')
-			begin->flag->f = 1;
-		if (flags[i] == 'g')
-		{
-			begin->flag->g = 1;
-			begin->flag->l = 1;
-		}
-		if (flags[i] == 'G')
-			begin->flag->G = 1;
-		if (flags[i] == '1')
-			begin->flag->one = 1;
+	{
+		put_flag(begin, flags[i]);
 		i++;
 	}
 }
@@ -60,63 +65,52 @@ int		check_valid_flags(char c)
 	return (0);
 }
 
+int		put_check_flag(char *argv, t_ls *tmp)
+{
+	int		k;
+	char	flags[20];
+	int		f;
+
+	k = 0;
+	f = 0;
+	ft_bzero(flags, 20);
+	while (argv[k + 1] && argv[k + 1] != ' ' && k < 20)
+	{
+		tmp->flag->error = argv[k + 1] == 'h';
+		if (check_valid_flags(argv[k + 1]) && argv[k + 1] != 'h')
+		{
+			if (!check_flag(flags, argv[k + 1]))
+				flags[f++] = argv[k + 1];
+		}
+		else
+			return (0);
+		k++;
+	}
+	parse_flags(tmp, flags);
+	return (1);
+}
+
 int		parsing(int argc, char **argv, t_ls *begin)
 {
-	t_ls	*save_begin;
+	t_ls	*tmp;
 	int		i;
 	int		k;
-	int		f;
-	char	flags[20];
 
 	i = 1;
-	f = 0;
 	k = 0;
-	ft_bzero(flags, 20);
-	save_begin = begin;
+	tmp = begin;
 	while (i < argc)
 	{
 		if (argv[i][0] == '-' && !k)
 		{
-			k = 0;
-			while (argv[i][k + 1] && argv[i][k + 1] != ' ' && k < 20)
-			{
-				begin->flag->error = argv[i][k + 1] == 'h';
-				if (check_valid_flags(argv[i][k + 1]) && argv[i][k + 1] != 'h')
-				{
-					if (!check_flag(flags, argv[i][k + 1]))
-						flags[f++] = argv[i][k + 1];
-				}
-				else
-					return (0);
-				k++;
-			}
-			parse_flags(begin, flags);
+			if (!(k = put_check_flag(argv[i], tmp)))
+				return (0);
 		}
-		else if (!begin->d_path)
-			begin->d_path = ft_strdup(argv[i]);
+		else if (!tmp->d_path)
+			tmp->d_path = ft_strdup(argv[i]);
 		else
-			begin = add_node(begin, ft_strdup(argv[i]));
+			tmp = add_node(tmp, ft_strdup(argv[i]));
 		i++;
 	}
-	begin = save_begin;
 	return (1);
-}
-
-int		check_LNK(char *dirname, t_ls *begin)
-{
-	struct stat stats;
-
-	if (!dirname)
-		return (0);
-	lstat(dirname, &stats);
-	if ((S_ISLNK(stats.st_mode) && dirname[ft_strlen(dirname) - 1] != '/'\
-	&& begin->flag->l) || S_ISREG(stats.st_mode))
-	{
-		begin->paths->path = ft_strdup(dirname);
-		begin->paths->stats = stats;
-		begin->w_rows = 0;
-		calc_max(begin, begin->paths);
-		return (1);
-	}
-	return (0);
 }

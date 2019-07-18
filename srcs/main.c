@@ -12,12 +12,10 @@
 
 #include "ft_ls.h"
 
-
-
 int		main(int argc, char **argv)
 {
-	t_ls *begin;
-	struct winsize w;
+	t_ls			*begin;
+	struct winsize	w;
 
 	ioctl(STDOUT_FILENO, TIOCGWINSZ, &w);
 	begin = create_ls();
@@ -27,7 +25,6 @@ int		main(int argc, char **argv)
 	{
 		if (parsing(argc, argv, begin))
 			output_ls(begin);
-			// ft_printf("OK\n");
 		else
 		{
 			if (!begin->flag->error)
@@ -35,7 +32,6 @@ int		main(int argc, char **argv)
 			ft_printf("usage : ./ft_ls [-arltRfgG1] [file ...]\n");
 			ft_memdel((void **)&begin);
 		}
-		// system("leaks ft_ls");
 	}
 	return (0);
 }

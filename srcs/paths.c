@@ -40,7 +40,7 @@ t_path	*add_path(t_path *begin)
 
 int		ft_lstlen(t_path *begin)
 {
-	int 	count;
+	int		count;
 	t_path	*tmp_begin;
 
 	count = 0;
@@ -55,46 +55,31 @@ int		ft_lstlen(t_path *begin)
 
 char	*pathcat(char *dir, char *file)
 {
-	char *ret;
-	int len;
-	int i;
-	int j;
+	char	*ret;
+	int		len_d;
+	int		len_f;
 
-	i = 0;
-	j = ft_strlen(file);
-	len = ft_strlen(dir);
-	ret = ft_memalloc(sizeof(char) * (len + j +\
-		(ft_get_index(dir, '/') == (unsigned int)len ? 1 : 2)));
-	while (i < len)
-	{
-		ret[i] = dir[i];
-		i++;
-	}
-	if (ret[i - 1] != '/')
-		ret[i++] = '/';
-	len = j;
-	j = 0;
-	while (j < len)
-	{
-		ret[i] = file[j];
-		j++;
-		i++;
-	}
-	ret[i] = '\0';
+	len_f = ft_strlen(file);
+	len_d = ft_strlen(dir);
+	ret = ft_memalloc(sizeof(char) * (len_d + len_f +\
+		(ft_get_index(dir, '/') == (unsigned int)len_d ? 1 : 2)));
+	ret = ft_strncpy(ret, dir, len_d);
+	if (ret[len_d - 1] != '/')
+		ret[len_d] = '/';
+	ret = ft_strncat(ret, file, len_f);
 	return (ret);
 }
 
 void	calc_max(t_ls *begin, t_path *path)
-{	
+{
 	int				len;
-	struct	passwd	*pw;
-	struct	group	*gr;
+	struct passwd	*pw;
+	struct group	*gr;
 
 	pw = getpwuid(path->stats.st_uid);
 	gr = getgrgid(path->stats.st_gid);
-
 	len = ft_nbrlen(path->stats.st_nlink);
-	begin->max_numlink =  len > begin->max_numlink ? len : begin->max_numlink;
+	begin->max_numlink = len > begin->max_numlink ? len : begin->max_numlink;
 	path->gr_name = ft_strdup(gr->gr_name);
 	len = ft_strlen(gr->gr_name);
 	begin->max_group = len > begin->max_group ? len : begin->max_group;
